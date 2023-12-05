@@ -1,7 +1,8 @@
 from openai import OpenAI
 import os
 from flask import Flask, request
-from linebot import LineBotApi, WebhookHandler
+from linebot import LineBotApi
+from linebot.v3.webhook import WebhookHandler
 from linebot.models import TextSendMessage
 import json
 
@@ -18,8 +19,8 @@ def linebot():
 
     try:
         # Inintialize LineBot API and Webhook Handler
-        line_bot_api = LineBotApi('Your Own Channel Access Token')
-        handler = WebhookHandler('Your Own Channel Secret')
+        line_bot_api = LineBotApi('YOUR_CHANNEL_ACCESS_TOKEN')
+        handler = WebhookHandler('YOUR_CHANNEL_SECRET')
 
         # Get signature from request headers
         signature = request.headers['X-Line-Signature']
@@ -47,7 +48,7 @@ def linebot():
                 model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": "You're a humorous services assistant who can speak both English and Chinese(TW) fluently."},
-                    {"role": "user", "content": user_message[6:]}
+                    {"role": "user", "content": f"{user_message[6:]}"}
                 ],
                 max_tokens=100
             )
