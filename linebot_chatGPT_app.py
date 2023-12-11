@@ -5,8 +5,12 @@ from linebot import LineBotApi
 from linebot.v3.webhook import WebhookHandler
 from linebot.models import TextSendMessage
 import json
+import threading
 
 app = Flask(__name__)
+
+# Global lock to synchronize file access
+file_lock = threading.Lock()
 
 @app.route("/", methods=['POST'])
 def linebot():
@@ -68,26 +72,29 @@ def linebot():
 
 def checkUserMsgQuota(user_id):
 
-    # Read the JSON file
-    with open('./userInfo.json', 'r') as json_file:
+    # Acquire the lock before reading/modifying the file
+    with file_lock:
 
-        # Load JSON data
-        data = json.load(json_file)
-        
-        # Check if this user_id exist and have enough quota of msg to ask
-        for user in data:
-            if user.get("userId") == user_id:
-                if user['quota'] == 0:
-                    return False
-                else:
-                    # User have enough quota, quota-=1
-                    userMsgQuotaDecreaseOne(data, user, user['quota'])
-                    return True
-                
-        # Cannot find this user_id, then it is a new user.
-        # Add this user to the JSON file
-        addUser(data, user_id)
-        return True
+        # Read the JSON file
+        with open('./userInfo.json', 'r') as json_file:
+
+            # Load JSON data
+            data = json.load(json_file)
+            
+            # Check if this user_id exists and has enough quota of messages to ask
+            for user in data:
+                if user.get("userId") == user_id:
+                    if user['quota'] == 0:
+                        return False
+                    else:
+                        # User have enough quota, quota-=1
+                        userMsgQuotaDecreaseOne(data, user, user['quota'])
+                        return True
+                    
+            # Cannot find this user_id, then it is a new user.
+            # Add this user to the JSON file
+            addUser(data, user_id)
+            return True
 
 def addUser(json_data, user_id):
     # Add new user's userId to the JSON file, and set the quota to 49, because the user used 1 quota upon asking question.
