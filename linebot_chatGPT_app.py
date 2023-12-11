@@ -113,7 +113,8 @@ def userMsgQuotaDecreaseOne(json_data, user, quota):
     return 'OK'
 
 def askChatGPT(client, user_message):
-    # Send the rest of the message to OpenAI for processing
+
+    # Send the user_message to OpenAI for processing
     completion = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
