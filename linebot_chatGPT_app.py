@@ -43,23 +43,15 @@ def linebot():
             ai_msg = user_message[:6].lower()
             reply_msg = ''
 
-        # Check if the message starts with 'hi ai:
-        if ai_msg == 'hi ai:':
-            
-            # Send the rest of the message to OpenAI for processing
-            completion = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": "You're a humorous services assistant who can speak both English and Chinese(TW) fluently."},
-                    {"role": "user", "content": f"{user_message[6:]}"}
-                ],
-                max_tokens=100
-            )
-            print(f"User asked: {user_message}")
-            reply_msg = completion.choices[0].message.content
-        else:
-            # If not a special command, echo the user's message
-            reply_msg = user_message
+            # Check if the message starts with 'hi ai:
+            if ai_msg == 'hi ai:':
+                
+                # User message starts with 'hi ai', direct the question to ChatGPT
+                reply_msg = askChatGPT(client, user_message)
+
+            else:
+                # If not a special command, echo the user's message
+                reply_msg = user_message
 
         # The user does not have enough quota to ask question
         else:
@@ -119,6 +111,19 @@ def userMsgQuotaDecreaseOne(json_data, user, quota):
         json.dump(json_data, json_file, indent=4)
 
     return 'OK'
+
+def askChatGPT(client, user_message):
+    # Send the rest of the message to OpenAI for processing
+    completion = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": "You're a customer services assistant who can speak both English and Chinese(TW) fluently."},
+            {"role": "user", "content": f"{user_message[6:]}"}
+        ],
+        max_tokens=100
+    )
+    print(f"User asked: {user_message}")
+    return completion.choices[0].message.content
 
 
 if __name__ == "__main__":
