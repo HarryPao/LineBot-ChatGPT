@@ -14,6 +14,8 @@ file_lock = threading.Lock()
 
 @app.route("/", methods=['POST'])
 def linebot():
+    """This function would be ran upon there is POST request from webhook."""
+    
     # Get the request body as text
     body = request.get_data(as_text=True)
 
@@ -71,7 +73,11 @@ def linebot():
     return 'OK'
 
 def checkUserMsgQuota(user_id):
-
+    """Check if the userId exists and has enough quota of messages to ask question.
+    If the user has enough quota, return true to enable asking chatPDF question.
+    If the user has no quota, return false to reject the user from asking.
+    If the user is a new user to this LineBot, add his/her  userId to the userInfo.json, and return ture to enable asking question."""
+    
     # Acquire the lock before reading/modifying the file
     with file_lock:
 
@@ -95,9 +101,14 @@ def checkUserMsgQuota(user_id):
             # Add this user to the JSON file
             addUser(data, user_id)
             return True
+        
+    # Automatically release the lock after this section been executed
 
 def addUser(json_data, user_id):
-    # Add new user's userId to the JSON file, and set the quota to 49, because the user used 1 quota upon asking question.
+    """Add the userId of the new user to the userInfo.json, and set the quota to 49,
+    because the user would use 1 quota upon asking question."""
+    
+    # Set the info of new_user
     new_user = {"userId": f"{user_id}", "quota": 49}
 
     # Append the new user info to the bottom of the userInfo.json
@@ -108,7 +119,8 @@ def addUser(json_data, user_id):
     return 'OK'
 
 def userMsgQuotaDecreaseOne(json_data, user, quota):
-    
+    """Decrease the quota of message of a specific user."""
+
     # Update remain quota of the user
     quota -= 1
     user.update({"quota": quota})
@@ -120,6 +132,7 @@ def userMsgQuotaDecreaseOne(json_data, user, quota):
     return 'OK'
 
 def askChatGPT(client, user_message):
+    """Call OpenAI API to ask ChatGPT-3.5 questions."""
 
     # Send the user_message to OpenAI for processing
     completion = client.chat.completions.create(
