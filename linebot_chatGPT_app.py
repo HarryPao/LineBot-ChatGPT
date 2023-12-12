@@ -6,6 +6,9 @@ from linebot.v3.webhook import WebhookHandler
 from linebot.models import TextSendMessage
 import json
 import threading
+import time
+from datetime import datetime, timedelta
+import schedule
 
 app = Flask(__name__)
 
@@ -15,7 +18,7 @@ file_lock = threading.Lock()
 @app.route("/", methods=['POST'])
 def linebot():
     """This function would be ran upon there is POST request from webhook."""
-    
+
     # Get the request body as text
     body = request.get_data(as_text=True)
 
@@ -146,7 +149,60 @@ def askChatGPT(client, user_message):
     print(f"User asked: {user_message}")
     return completion.choices[0].message.content
 
+def reset_status():
+    """Load the userInfo.json, reset the "quota" to 50 of every user, and save it back."""
+    
+    # Acquire the lock
+    with file_lock:
+        
+        with open("./userInfo.json", 'r') as json_file:
+            data = json.load(json_file)
+
+            # Reset every users' quota of messages to 50
+            for user in data:
+                user['quota'] = 50
+    # Release the lock
+
+    # Acquire the lock
+    with file_lock:
+
+        with open("./userInfo.json", 'w') as json_file:
+            json.dump(data, json_file, indent=4)
+    # Release the lock after writing to the file       
+
+def scheduled_reset(exit_event):
+    """Reset users' quota to 50 upon everyday midnight """
+    schedule.every().day.at("00:00").do(reset_status)
+
+    while not exit_event.is_set():
+        # Check if there are any scheduled tasks that need to be executed
+        schedule.run_pending()
+
+        # Introduces a small delay of 1 sec between iterations of the loop, 
+        # preventing the loop from consuming excessive CPU resources
+        time.sleep(30)
+
+def main():
+    """Ran as a background task and continuously check the time
+     to check if resetting users' quota of message is needed."""
+    
+    # Create an Event to  signal the thread to exit.(Upon Ctrl+c is pressed)
+    exit_event = threading.Event()
+
+    # Start a thread for the scheduled task
+    schedule_thread = threading.Thread(target=scheduled_reset, args=(exit_event,))
+    schedule_thread.start()
+
+    try:
+        # Run the Flask app
+        app.run(debug=True)
+
+    except KeyboardInterrupt:
+        # Ctrl+c is pressed, set the exit event and wait for the thread to exit
+        exit_event.set()
+        schedule_thread.join()
 
 if __name__ == "__main__":
-    # Run the Flask app
-    app.run(debug=True)
+
+    main()
+
