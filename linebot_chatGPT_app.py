@@ -44,16 +44,19 @@ def linebot():
         user_id = json_data['events'][0]['source']['userId']
         reply_token = json_data['events'][0]['replyToken']
         user_message = json_data['events'][0]['message']['text']
+        # Use user_id to get the profile of the user
+        profile = line_bot_api.get_profile(user_id)
+        user_name = profile.display_name
 
         # Check if the user have enough quota to ask question
-        if checkUserMsgQuota(user_id):
+        if checkUserMsgQuota(user_id, user_name):
 
             # Extract the first six characters of the message in lowercase
             ai_msg = user_message[:6].lower()
             reply_msg = ''
 
             # Check if the message starts with 'hi ai:
-            if ai_msg == 'hi ai:':
+            if ai_msg == 'hi ai ':
                 
                 # User message starts with 'hi ai', direct the question to ChatGPT
                 reply_msg = askChatGPT(client, user_message)
@@ -75,8 +78,9 @@ def linebot():
         print(e)
     return 'OK'
 
-def checkUserMsgQuota(user_id):
-    """Check if the userId exists and has enough quota of messages to ask question.
+def checkUserMsgQuota(user_id, user_name):
+    """First check if user has change his/her profile name (display name), if he/she has, modify it in userInfo.json.
+    Then, check if the userId exists and has enough quota of messages to ask question.
     If the user has enough quota, return true to enable asking chatPDF question.
     If the user has no quota, return false to reject the user from asking.
     If the user is a new user to this LineBot, add his/her  userId to the userInfo.json, and return ture to enable asking question."""
@@ -93,6 +97,11 @@ def checkUserMsgQuota(user_id):
             # Check if this user_id exists and has enough quota of messages to ask
             for user in data:
                 if user.get("userId") == user_id:
+                    
+                    # Check if this user has modified his/her profile name(display name); if he/her had, modify in userInfo.json
+                    if user['userName'] != user_name:
+                        modifyUserName(data, user, user_name)
+
                     if user['quota'] == 0:
                         return False
                     else:
@@ -102,17 +111,29 @@ def checkUserMsgQuota(user_id):
                     
             # Cannot find this user_id, then it is a new user.
             # Add this user to the JSON file
-            addUser(data, user_id)
+            addUser(data, user_id, user_name)
             return True
         
     # Automatically release the lock after this section been executed
 
-def addUser(json_data, user_id):
+def modifyUserName(json_data, user, user_name):
+    """Modify user's profile name (display name) in userInfo.json."""
+
+    # Update the old user name to new user name
+    user.update({"userName": user_name})
+
+    # Write the updated info to the ./userInfo.json
+    with open('./userInfo.json', 'w') as json_file:
+        json.dump(json_data, json_file, indent=4)
+
+    return 'OK'
+
+def addUser(json_data, user_id, user_name):
     """Add the userId of the new user to the userInfo.json, and set the quota to 49,
     because the user would use 1 quota upon asking question."""
     
     # Set the info of new_user
-    new_user = {"userId": f"{user_id}", "quota": 49}
+    new_user = {"userName": f"{user_name}", "userId": f"{user_id}", "quota": 49}
 
     # Append the new user info to the bottom of the userInfo.json
     json_data.append(new_user)
