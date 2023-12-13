@@ -27,8 +27,8 @@ def linebot():
 
     try:
         # Inintialize LineBot API and Webhook Handler
-        line_bot_api = LineBotApi('S86nToD/Vbo9OGzmlrjyx/T/xjnnvsDGl0Uy3a8cF868oMz5D0sQyoegzadNjVYsv/lxOt/1rQzE8Ju2kAmGtz4j0MKq8YFDr5z3ZCSzj8MeulKehioMvobb3CBfVxnGsRFnNf+rpWjuWI89GXtdPgdB04t89/1O/w1cDnyilFU=')
-        handler = WebhookHandler('c29d88e84d2f63b9e25bfc636701932f')
+        line_bot_api = LineBotApi('YOUR_CHANNEL_ACCESS_TOKEN')
+        handler = WebhookHandler('YOUR_CHANNEL_SECRET')
         
         # Get signature from request headers
         signature = request.headers['X-Line-Signature']
