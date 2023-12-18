@@ -44,26 +44,25 @@ def linebot():
         profile = line_bot_api.get_profile(user_id)
         user_name = profile.display_name
 
-        # Check if the user have enough quota to ask question
-        if checkUserMsgQuota(user_id, user_name):
+        # Check if the message starts with 'hi ai:, if it does, enter AI mode.
+        if user_message[:6].lower() == 'hi ai':
 
-            # Extract the first six characters of the message in lowercase
-            ai_msg = user_message[:6].lower()
-            reply_msg = ''
-
-            # Check if the message starts with 'hi ai:
-            if ai_msg == 'hi ai ':
+            # Check if the user have enough quota to ask question
+            if checkUserMsgQuota(user_id, user_name):
                 
-                # User message starts with 'hi ai', direct the question to chatPDF
+                # Enter AI mode -> record status: idle_time
+
+                # Redirect the question to chatPDF
                 reply_msg = askChatPDF(user_message)
 
+            # The user does not have enough quota to ask question
             else:
-                # If not a special command, echo the user's message
-                reply_msg = user_message
+                reply_msg = "We're sorry, but you've reached the message limit of the day. Please ask again tomorrow."
 
-        # The user does not have enough quota to ask question
+        # If not a special command, echo the user's message
+        # Use tradtional linebot mode
         else:
-            reply_msg = "We're sorry, but you've reached the message limit of the day. Please ask again tomorrow."
+            reply_msg = user_message
         
         # Send the reply message back to the user
         text_message = TextSendMessage(text=reply_msg)
