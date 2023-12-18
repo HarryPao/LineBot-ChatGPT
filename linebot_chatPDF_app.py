@@ -78,45 +78,6 @@ def linebot():
         print(e)
     return 'OK'
 
-def checkUserModeStatus(user_id):
-    """Check userInfo.json to if user is in AI mode."""
-
-    # Acquire the lock before reading/modifying the file
-    with file_lock:
-
-        # Read the JSON file
-        with open('./userInfo.json', 'r') as json_file:
-
-            # Load JSON data
-            data = json.load(json_file)
-
-            # Check user's mode status
-            for user in data:
-                if user.get("userID") == user_id:
-                    return user['AImode']
-
-def enterAImode(user_id):
-    """Turn user's AImode status into active(true)."""
-
-    # Acquire the lock before reading/modifying the file
-    with file_lock:
-
-        # Read the JSON file
-        with open('./userInfo.json', 'r') as json_file:
-
-            # Load JSON data
-            data = json.load(json_file)
-
-            # Search the user info and update his/her AImode into active(true).
-            for user in data:
-                if user.get("userId") == user_id:
-                    user.update({"AImode": True})
-                    break
-                
-        # Write the file
-        with open('./userInfo.json', 'w') as json_file:
-            json.dump(data, json_file, indent=4)
-
 def checkUserMsgQuota(user_id, user_name):
     """First check if user has change his/her profile name (display name), if he/she has, modify it in userInfo.json.
     Then, check if the userId exists and has enough quota of messages to ask question.
@@ -193,6 +154,45 @@ def userMsgQuotaDecreaseOne(json_data, user, quota):
         json.dump(json_data, json_file, indent=4)
 
     return 'OK'
+
+def checkUserModeStatus(user_id):
+    """Check userInfo.json to if user is in AI mode."""
+
+    # Acquire the lock before reading/modifying the file
+    with file_lock:
+
+        # Read the JSON file
+        with open('./userInfo.json', 'r') as json_file:
+
+            # Load JSON data
+            data = json.load(json_file)
+
+            # Check user's mode status
+            for user in data:
+                if user.get("userID") == user_id:
+                    return user['AImode']
+
+def enterAImode(user_id):
+    """Turn user's AImode status into active(true)."""
+
+    # Acquire the lock before reading/modifying the file
+    with file_lock:
+
+        # Read the JSON file
+        with open('./userInfo.json', 'r') as json_file:
+
+            # Load JSON data
+            data = json.load(json_file)
+
+            # Search the user info and update his/her AImode into active(true).
+            for user in data:
+                if user.get("userId") == user_id:
+                    user.update({"AImode": True})
+                    break
+                
+        # Write the file
+        with open('./userInfo.json', 'w') as json_file:
+            json.dump(data, json_file, indent=4)
 
 def askChatPDF(user_message):
     """Call chatPDF API to ask questions."""
