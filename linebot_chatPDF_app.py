@@ -45,12 +45,17 @@ def linebot():
         user_name = profile.display_name
 
         # Check if the message starts with 'hi ai:, if it does, enter AI mode.
-        if user_message[:6].lower() == 'hi ai':
+        if user_message[:5].lower() == 'hi ai' or checkUserModeStatus(user_id):
 
             # Check if the user have enough quota to ask question
             if checkUserMsgQuota(user_id, user_name):
-                
-                # Enter AI mode -> record status: idle_time
+
+                # Enter AI mode if the message starts with 'hi ai'.(Assuming that the user use 'hi ai' to enter AI mode)
+                if user_message[:5].lower() == 'hi ai':
+                    enterAImode(user_id)
+
+                # Record last msg time
+                # changeLastAImsgTime()
 
                 # Redirect the question to chatPDF
                 reply_msg = askChatPDF(user_message)
@@ -72,6 +77,45 @@ def linebot():
         # Print any exceptions for debugging purposes
         print(e)
     return 'OK'
+
+def checkUserModeStatus(user_id):
+    """Check userInfo.json to if user is in AI mode."""
+
+    # Acquire the lock before reading/modifying the file
+    with file_lock:
+
+        # Read the JSON file
+        with open('./userInfo.json', 'r') as json_file:
+
+            # Load JSON data
+            data = json.load(json_file)
+
+            # Check user's mode status
+            for user in data:
+                if user.get("userID") == user_id:
+                    return user['AImode']
+
+def enterAImode(user_id):
+    """Turn user's AImode status into active(true)."""
+
+    # Acquire the lock before reading/modifying the file
+    with file_lock:
+
+        # Read the JSON file
+        with open('./userInfo.json', 'r') as json_file:
+
+            # Load JSON data
+            data = json.load(json_file)
+
+            # Search the user info and update his/her AImode into active(true).
+            for user in data:
+                if user.get("userId") == user_id:
+                    user.update({"AImode": True})
+                    break
+                
+        # Write the file
+        with open('./userInfo.json', 'w') as json_file:
+            json.dump(data, json_file, indent=4)
 
 def checkUserMsgQuota(user_id, user_name):
     """First check if user has change his/her profile name (display name), if he/she has, modify it in userInfo.json.
