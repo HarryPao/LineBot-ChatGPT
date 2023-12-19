@@ -193,6 +193,24 @@ def enterAImode(user_id):
         # Write the file
         with open('./userInfo.json', 'w') as json_file:
             json.dump(data, json_file, indent=4)
+def updateLastAImsgTime(user_id):
+    """Update user's lastAImsgTime in userInfo.json to the current time."""
+
+    # Read the JSON file
+    with open('./userInfo.json', 'r') as json_file:
+
+        #Load JSON data
+        data = json.load(json_file)
+
+        # Search the user info and update his/her AImode into active(true).
+        for user in data:
+            if user.get("userId") == user_id:
+                user.update({"lastAImsgTime": time.time()})
+                break
+
+    # Write the file
+    with open('./userInfo.json', 'w') as json_file:
+        json.dump(data, json_file, indent=4)
 
 def askChatPDF(user_message):
     """Call chatPDF API to ask questions."""
@@ -222,6 +240,61 @@ def askChatPDF(user_message):
         response_msg = "Sorry, it seems that there is something wrong with the AI right now. Please ask AI later, thank you."
     
     return response_msg
+
+def check_idle_users(exit_event):
+    """Periodically check idle users and sends notifications if their idle time exceeds 5 mins"""
+
+    # Periodically check idle users and send notifications
+    while not exit_event.is_set():
+        with file_lock:
+            # Check if there are any scheduled tasks that need to be executed
+            schedule.run_pending()
+            
+            with open('./userInfo.json', 'r') as json_file:
+
+                # Load JSON data
+                data = json.load(json_file)
+
+                currunt_time = time.time()
+                for user in data:
+
+                    # Only deactivates AI mode and sends notification if the user is in AI mode
+                    if checkUserModeStatus(user['userId']):
+
+                        # Calculate user's idle time, and see if the user's idle time exceed 5 mins.
+                        idle_time = currunt_time - user['lastAImsgTime']
+                        if idle_time > 60:
+                            exitAImodeNotification(user['userId'])
+                            exitAImode(user['userId'])
+        time.sleep(5)
+
+def exitAImodeNotification(user_id):
+    """Notify specific user to let him/her know the AI customer service is signing off."""
+
+    # Create a TextSendMessage object with the message content
+    notificationMsg = TextSendMessage(text = "Dear customer, hello! As you have been idle for more than 5 minutes, the AI customer service is now signing off. If you still need the services of our AI customer service, please use 'hi ai' to wake me up. Looking forward to continuing to serve you!")
+    
+    # Use the push_message method to send the message
+    line_bot_api.push_message(user_id, messages=notificationMsg)
+
+def exitAImode(user_id):
+    """Turn user's AImode status into deactive(false)."""
+
+    # Read the JSON file
+    with open('./userInfo.json', 'r') as json_file:
+
+        # Load JSON data
+        data = json.load(json_file)
+
+        # Search the user info and update his/her AImode into deactive(false).
+        for user in data:
+            if user.get("userId") == user_id:
+                user.update({"AImode": False})
+                break
+
+    # Write the file
+    with open('./userInfo.json', 'w') as json_file:
+        json.dump(data, json_file, indent=4)
 
 def reset_status():
     """Load the userInfo.json, reset the "quota" to 50 of every user, and save it back."""
@@ -267,6 +340,10 @@ def main():
     schedule_thread = threading.Thread(target=scheduled_reset, args=(exit_event,))
     schedule_thread.start()
 
+    # Start a thread for consistently check users' idle time
+    check_idle_thread = threading.Thread(target=check_idle_users, args=(exit_event,))
+    check_idle_thread.start()
+
     try:
         # Run the Flask app
         app.run(debug=True)
@@ -275,6 +352,7 @@ def main():
         # Ctrl+c is pressed, set the exit event and wait for the thread to exit
         exit_event.set()
         schedule_thread.join()
+        check_idle_thread.join()
 
 if __name__ == "__main__":
 
