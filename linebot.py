@@ -13,7 +13,7 @@ import requests
 app = Flask(__name__)
 
 # Initialize LineBot API
-line_bot_api= LineBotApi('YOUR_CHANNEL_ACCESS_TOKEN')
+line_bot_api= LineBotApi(os.environ['CHANNEL_ACCESS_TOKEN'])
 
 # Global lock to synchronize file access
 file_lock = threading.Lock()
@@ -30,7 +30,7 @@ def linebot():
 
     try:
         # Inintialize Webhook Handler
-        handler = WebhookHandler('YOUR_CHANNEL_SECRET')
+        handler = WebhookHandler(os.environ['CHANNEL_SECRET'])
         
         # Get signature from request headers
         signature = request.headers['X-Line-Signature']
