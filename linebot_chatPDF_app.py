@@ -44,34 +44,35 @@ def linebot():
         profile = line_bot_api.get_profile(user_id)
         user_name = profile.display_name
 
-        # Check if the message starts with 'hi ai:, if it does, enter AI mode.
-        if user_message[:5].lower() == 'hi ai' or checkUserModeStatus(user_id):
+        with file_lock:
+            # Check if the message starts with 'hi ai:, if it does, enter AI mode.
+            if user_message[:5].lower() == 'hi ai' or checkUserModeStatus(user_id):
 
-            # Check if the user have enough quota to ask question
-            if checkUserMsgQuota(user_id, user_name):
+                # Check if the user have enough quota to ask question
+                if checkUserMsgQuota(user_id, user_name):
 
-                # Enter AI mode if the message starts with 'hi ai'.(Assuming that the user use 'hi ai' to enter AI mode)
-                if user_message[:5].lower() == 'hi ai':
-                    enterAImode(user_id)
+                    # Enter AI mode if the message starts with 'hi ai'.(Assuming that the user use 'hi ai' to enter AI mode)
+                    if user_message[:5].lower() == 'hi ai':
+                        enterAImode(user_id)
 
-                # Record last msg time
-                # changeLastAImsgTime()
+                    # Record last msg time
+                    updateLastAImsgTime(user_id)
 
-                # Redirect the question to chatPDF
-                reply_msg = askChatPDF(user_message)
+                    # Redirect the question to chatPDF
+                    reply_msg = askChatPDF(user_message)
 
-            # The user does not have enough quota to ask question
+                # The user does not have enough quota to ask question
+                else:
+                    reply_msg = "We're sorry, but you've reached the message limit of the day. Please ask again tomorrow."
+
+            # If not a special command, echo the user's message
+            # Use tradtional linebot mode
             else:
-                reply_msg = "We're sorry, but you've reached the message limit of the day. Please ask again tomorrow."
-
-        # If not a special command, echo the user's message
-        # Use tradtional linebot mode
-        else:
-            reply_msg = user_message
-        
-        # Send the reply message back to the user
-        text_message = TextSendMessage(text=reply_msg)
-        line_bot_api.reply_message(reply_token,text_message)
+                reply_msg = user_message
+            
+            # Send the reply message back to the user
+            text_message = TextSendMessage(text=reply_msg)
+            line_bot_api.reply_message(reply_token,text_message)
 
     except Exception as e:
         # Print any exceptions for debugging purposes
@@ -84,37 +85,32 @@ def checkUserMsgQuota(user_id, user_name):
     If the user has enough quota, return true to enable asking chatPDF question.
     If the user has no quota, return false to reject the user from asking.
     If the user is a new user to this LineBot, add his/her  userId to the userInfo.json, and return ture to enable asking question."""
-    
-    # Acquire the lock before reading/modifying the file
-    with file_lock:
 
-        # Read the JSON file
-        with open('./userInfo.json', 'r') as json_file:
+    # Read the JSON file
+    with open('./userInfo.json', 'r') as json_file:
 
-            # Load JSON data
-            data = json.load(json_file)
-            
-            # Check if this user_id exists and has enough quota of messages to ask
-            for user in data:
-                if user.get("userId") == user_id:
-
-                    # Check if this user has modified his/her profile name(display name); if he/her had, modify in userInfo.json
-                    if user['userName'] != user_name:
-                        modifyUserName(data, user, user_name)
-
-                    if user['quota'] == 0:
-                        return False
-                    else:
-                        # User have enough quota, quota-=1
-                        userMsgQuotaDecreaseOne(data, user, user['quota'])
-                        return True
-                    
-            # Cannot find this user_id, then it is a new user.
-            # Add this user to the JSON file
-            addUser(data, user_id, user_name)
-            return True
+        # Load JSON data
+        data = json.load(json_file)
         
-    # Automatically release the lock after this section been executed
+        # Check if this user_id exists and has enough quota of messages to ask
+        for user in data:
+            if user.get("userId") == user_id:
+
+                # Check if this user has modified his/her profile name(display name); if he/her had, modify in userInfo.json
+                if user['userName'] != user_name:
+                    modifyUserName(data, user, user_name)
+
+                if user['quota'] == 0:
+                    return False
+                else:
+                    # User have enough quota, quota-=1
+                    userMsgQuotaDecreaseOne(data, user, user['quota'])
+                    return True
+                
+        # Cannot find this user_id, then it is a new user.
+        # Add this user to the JSON file
+        addUser(data, user_id, user_name)
+        return True
 
 def modifyUserName(json_data, user, user_name):
     """Modify user's profile name (display name) in userInfo.json."""
@@ -158,41 +154,36 @@ def userMsgQuotaDecreaseOne(json_data, user, quota):
 def checkUserModeStatus(user_id):
     """Check userInfo.json to if user is in AI mode."""
 
-    # Acquire the lock before reading/modifying the file
-    with file_lock:
+    # Read the JSON file
+    with open('./userInfo.json', 'r') as json_file:
 
-        # Read the JSON file
-        with open('./userInfo.json', 'r') as json_file:
+        # Load JSON data
+        data = json.load(json_file)
 
-            # Load JSON data
-            data = json.load(json_file)
-
-            # Check user's mode status
-            for user in data:
-                if user.get("userID") == user_id:
-                    return user['AImode']
+        # Check user's mode status
+        for user in data:
+            if user.get("userId") == user_id:
+                return user['AImode']
 
 def enterAImode(user_id):
     """Turn user's AImode status into active(true)."""
 
-    # Acquire the lock before reading/modifying the file
-    with file_lock:
+    # Read the JSON file
+    with open('./userInfo.json', 'r') as json_file:
 
-        # Read the JSON file
-        with open('./userInfo.json', 'r') as json_file:
+        # Load JSON data
+        data = json.load(json_file)
 
-            # Load JSON data
-            data = json.load(json_file)
+        # Search the user info and update his/her AImode into active(true).
+        for user in data:
+            if user.get("userId") == user_id:
+                user.update({"AImode": True})
+                break
+            
+    # Write the file
+    with open('./userInfo.json', 'w') as json_file:
+        json.dump(data, json_file, indent=4)
 
-            # Search the user info and update his/her AImode into active(true).
-            for user in data:
-                if user.get("userId") == user_id:
-                    user.update({"AImode": True})
-                    break
-                
-        # Write the file
-        with open('./userInfo.json', 'w') as json_file:
-            json.dump(data, json_file, indent=4)
 def updateLastAImsgTime(user_id):
     """Update user's lastAImsgTime in userInfo.json to the current time."""
 
@@ -226,7 +217,7 @@ def askChatPDF(user_message):
         'messages': [
             {
                 'role': "user",
-                'content': f"{user_message[6:]}",
+                'content': f"{user_message}",
             }
         ]
     }
@@ -299,31 +290,25 @@ def exitAImode(user_id):
 def reset_status():
     """Load the userInfo.json, reset the "quota" to 50 of every user, and save it back."""
     
-    # Acquire the lock
-    with file_lock:
-        
-        with open("./userInfo.json", 'r') as json_file:
-            data = json.load(json_file)
+    with open("./userInfo.json", 'r') as json_file:
+        data = json.load(json_file)
 
-            # Reset every users' quota of messages to 50
-            for user in data:
-                user['quota'] = 50
-    # Release the lock
+        # Reset every users' quota of messages to 50
+        for user in data:
+            user['quota'] = 50
 
-    # Acquire the lock
-    with file_lock:
-
-        with open("./userInfo.json", 'w') as json_file:
-            json.dump(data, json_file, indent=4)
-    # Release the lock after writing to the file       
+    with open("./userInfo.json", 'w') as json_file:
+        json.dump(data, json_file, indent=4)
 
 def scheduled_reset(exit_event):
     """Reset users' quota to 50 upon everyday midnight """
-    schedule.every().day.at("00:00").do(reset_status)
+
 
     while not exit_event.is_set():
-        # Check if there are any scheduled tasks that need to be executed
-        schedule.run_pending()
+        with file_lock:
+            # Check if there are any scheduled tasks that need to be executed
+            schedule.run_pending()
+            schedule.every().day.at("00:00").do(reset_status)
 
         # Introduces a small delay of 1 sec between iterations of the loop, 
         # preventing the loop from consuming excessive CPU resources
