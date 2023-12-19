@@ -12,6 +12,9 @@ import requests
 
 app = Flask(__name__)
 
+# Initialize LineBot API
+line_bot_api= LineBotApi('YOUR_CHANNEL_ACCESS_TOKEN')
+
 # Global lock to synchronize file access
 file_lock = threading.Lock()
 
@@ -26,8 +29,7 @@ def linebot():
     json_data = json.loads(body)
 
     try:
-        # Inintialize LineBot API and Webhook Handler
-        line_bot_api = LineBotApi('YOUR_CHANNEL_ACCESS_TOKEN')
+        # Inintialize Webhook Handler
         handler = WebhookHandler('YOUR_CHANNEL_SECRET')
         
         # Get signature from request headers
@@ -240,7 +242,7 @@ def check_idle_users(exit_event):
         with file_lock:
             # Check if there are any scheduled tasks that need to be executed
             schedule.run_pending()
-            
+
             with open('./userInfo.json', 'r') as json_file:
 
                 # Load JSON data
