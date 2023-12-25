@@ -11,6 +11,7 @@ import schedule
 import requests
 
 app = Flask(__name__)
+json_file_path = './tmp/userInfo.json'
 
 # Initialize LineBot API
 line_bot_api= LineBotApi(os.environ['CHANNEL_ACCESS_TOKEN'])
@@ -89,7 +90,7 @@ def checkUserMsgQuota(user_id, user_name):
     If the user is a new user to this LineBot, add his/her  userId to the userInfo.json, and return ture to enable asking question."""
 
     # Read the JSON file
-    with open('./userInfo.json', 'r') as json_file:
+    with open(json_file_path, 'r') as json_file:
 
         # Load JSON data
         data = json.load(json_file)
@@ -120,8 +121,8 @@ def modifyUserName(json_data, user, user_name):
     # Update the old user name to new user name
     user.update({"userName": user_name})
 
-    # Write the updated info to the ./userInfo.json
-    with open('./userInfo.json', 'w') as json_file:
+    # Write the updated info to the ./tmp/userInfo.json
+    with open(json_file_path, 'w') as json_file:
         json.dump(json_data, json_file, indent=4)
 
     return 'OK'
@@ -135,7 +136,7 @@ def addUser(json_data, user_id, user_name):
 
     # Append the new user info to the bottom of the userInfo.json
     json_data.append(new_user)
-    with open('./userInfo.json', 'w') as json_file:
+    with open(json_file_path, 'w') as json_file:
         json.dump(json_data, json_file, indent=4)
 
     return 'OK'
@@ -147,8 +148,8 @@ def userMsgQuotaDecreaseOne(json_data, user, quota):
     quota -= 1
     user.update({"quota": quota})
 
-    # Write the updated info to the ./userInfo.json
-    with open('./userInfo.json', 'w') as json_file:
+    # Write the updated info to the ./tmp/userInfo.json
+    with open(json_file_path, 'w') as json_file:
         json.dump(json_data, json_file, indent=4)
 
     return 'OK'
@@ -157,7 +158,7 @@ def checkUserModeStatus(user_id):
     """Check userInfo.json to if user is in AI mode."""
 
     # Read the JSON file
-    with open('./userInfo.json', 'r') as json_file:
+    with open(json_file_path, 'r') as json_file:
 
         # Load JSON data
         data = json.load(json_file)
@@ -171,7 +172,7 @@ def enterAImode(user_id):
     """Turn user's AImode status into active(true)."""
 
     # Read the JSON file
-    with open('./userInfo.json', 'r') as json_file:
+    with open(json_file_path, 'r') as json_file:
 
         # Load JSON data
         data = json.load(json_file)
@@ -183,14 +184,14 @@ def enterAImode(user_id):
                 break
             
     # Write the file
-    with open('./userInfo.json', 'w') as json_file:
+    with open(json_file_path, 'w') as json_file:
         json.dump(data, json_file, indent=4)
 
 def updateLastAImsgTime(user_id):
     """Update user's lastAImsgTime in userInfo.json to the current time."""
 
     # Read the JSON file
-    with open('./userInfo.json', 'r') as json_file:
+    with open(json_file_path, 'r') as json_file:
 
         #Load JSON data
         data = json.load(json_file)
@@ -202,7 +203,7 @@ def updateLastAImsgTime(user_id):
                 break
 
     # Write the file
-    with open('./userInfo.json', 'w') as json_file:
+    with open(json_file_path, 'w') as json_file:
         json.dump(data, json_file, indent=4)
 
 def askChatPDF(user_message):
@@ -243,7 +244,7 @@ def check_idle_users(exit_event):
             # Check if there are any scheduled tasks that need to be executed
             schedule.run_pending()
 
-            with open('./userInfo.json', 'r') as json_file:
+            with open(json_file_path, 'r') as json_file:
 
                 # Load JSON data
                 data = json.load(json_file)
@@ -274,7 +275,7 @@ def exitAImode(user_id):
     """Turn user's AImode status into deactive(false)."""
 
     # Read the JSON file
-    with open('./userInfo.json', 'r') as json_file:
+    with open(json_file_path, 'r') as json_file:
 
         # Load JSON data
         data = json.load(json_file)
@@ -286,20 +287,20 @@ def exitAImode(user_id):
                 break
 
     # Write the file
-    with open('./userInfo.json', 'w') as json_file:
+    with open(json_file_path, 'w') as json_file:
         json.dump(data, json_file, indent=4)
 
 def reset_status():
     """Load the userInfo.json, reset the "quota" to 50 of every user, and save it back."""
     
-    with open("./userInfo.json", 'r') as json_file:
+    with open(json_file_path, 'r') as json_file:
         data = json.load(json_file)
 
         # Reset every users' quota of messages to 50
         for user in data:
             user['quota'] = 50
 
-    with open("./userInfo.json", 'w') as json_file:
+    with open(json_file_path, 'w') as json_file:
         json.dump(data, json_file, indent=4)
 
 def scheduled_reset(exit_event):

@@ -1,10 +1,10 @@
 [
     {
-        "userName": "Harry Pao",
+        "userName": "Harry",
         "userId": "U1ef0292360a85a9b7446d8120580f26c",
-        "quota": 47,
-        "AImode": false,
-        "lastAImsgTime": 1702958120.0125582
+        "quota": 46,
+        "AImode": true,
+        "lastAImsgTime": 1703492434.5842316
     },
     {
         "userName": "Test1234",
