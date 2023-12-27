@@ -23,11 +23,11 @@ line_bot_api= LineBotApi(os.environ['CHANNEL_ACCESS_TOKEN'])
 
 # Initialize the PostgreSQLHandler
 db_handler = PostgreSQLHandler(
-    dbname='linebot',
-    user='postgres',
-    password='1234',
-    host='localhost',
-    port='5432' # Default PostgreSQL port
+    dbname='YOUR_DB_NAME',
+    user='YOUR_DB_USER',
+    password='YOUR_DB_PWD',
+    host='YOUR_DB_HOST',
+    port='YOUR_DB_SERVER_PORT' # Default PostgreSQL port
 )
 
 
