@@ -22,14 +22,15 @@ app = Flask(__name__)
 line_bot_api= LineBotApi(os.environ['CHANNEL_ACCESS_TOKEN'])
 
 # Initialize the PostgreSQLHandler
-db_handler = PostgreSQLHandler(
-    dbname='YOUR_DB_NAME',
-    user='YOUR_DB_USER',
-    password='YOUR_DB_PWD',
-    host='YOUR_DB_HOST',
-    port='YOUR_DB_SERVER_PORT' # Default PostgreSQL port
-)
-
+# db_handler = PostgreSQLHandler(
+#     dbname='YOUR_DB_NAME',
+#     user='YOUR_DB_USER',
+#     password='YOUR_DB_PWD',
+#     host='YOUR_DB_HOST',
+#     port='YOUR_DB_SERVER_PORT' # Default PostgreSQL port
+# )
+DATABASE_URL = os.environ['DATABSE_URL']
+db_handler = PostgreSQLHandler(DATABASE_URL)
 
 @app.route("/", methods=['POST'])
 def linebot():

@@ -3,14 +3,17 @@ import psycopg2
 from psycopg2 import sql
 
 class PostgreSQLHandler:
-    def __init__(self, dbname, user, password, host, port):
-        self.connection = psycopg2.connect(
-            dbname=dbname,
-            user=user,
-            password=password,
-            host=host,
-            port=port
-        )
+    # def __init__(self, dbname, user, password, host, port):
+    #     self.connection = psycopg2.connect(
+    #         dbname=dbname,
+    #         user=user,
+    #         password=password,
+    #         host=host,
+    #         port=port
+    #     )
+    #     self.cursor = self.connection.cursor()
+    def __init__(self, database_url):
+        self.connection = psycopg2.connect(database_url)
         self.cursor = self.connection.cursor()
 
     def create_table(self, table_name, columns):
