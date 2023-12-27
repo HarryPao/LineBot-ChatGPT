@@ -300,7 +300,12 @@ def main():
         # Close the database connection
         db_handler.close_connection()
 
+# Gunicorn hook to run code after a worker process has started
+def post_worker_init(worker):
+    main()
+
 if __name__ == "__main__":
 
+    # Run the Flask app
+    app.run(debug=True)
     main()
-    
