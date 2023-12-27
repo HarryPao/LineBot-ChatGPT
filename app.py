@@ -287,7 +287,7 @@ def main():
         check_idle_thread.start()
 
         # Run the Flask app
-        app.run(debug=True)
+        #app.run(debug=True)
 
     except KeyboardInterrupt:
         # Ctrl+c is pressed, set the exit event for threads to exit gracefully
