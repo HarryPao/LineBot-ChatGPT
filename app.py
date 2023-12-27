@@ -4,6 +4,7 @@ import json
 import threading
 import time
 from datetime import datetime, timedelta
+import logging
 
 # Third-Party Imports
 from flask import Flask, request
@@ -15,6 +16,10 @@ import requests
 
 # Local Imports
 from db_module.db_operations import PostgreSQLHandler
+
+# Set up logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
@@ -202,6 +207,7 @@ def check_idle_user(exit_event):
     # Don't know why this while loop was executed twice every 5 sec,
     # so just put a counter to ensure it only execute once every 5 sec.
     print("check_idle_user() has been called")
+    logger.info("check_idle_user() has been called")
     # Periodically check idle users and send notifications
     while not exit_event.is_set():
 
@@ -266,6 +272,7 @@ def main():
      to check if resetting users' quota of message is needed.
      Also continuously checking users' idle time and deactivate AImode when meeded"""
     print("main() has been called")
+    logger.info("main() has been called")
     lock = threading.Lock()
 
     # Create an Event to  signal the thread to exit.(Upon Ctrl+c is pressed)
