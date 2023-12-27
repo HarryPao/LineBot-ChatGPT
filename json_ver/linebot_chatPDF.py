@@ -14,8 +14,8 @@ app = Flask(__name__)
 json_file_path = './tmp/userInfo.json'
 
 # Initialize LineBot API
-#line_bot_api= LineBotApi(os.environ['CHANNEL_ACCESS_TOKEN'])
-line_bot_api = LineBotApi('2yh9Hw0EaCE2r3NLKY1l8AaLpQn/MEmD5mUhWSgJAzbq9M+18IjVpgSGpafB6FB1v/lxOt/1rQzE8Ju2kAmGtz4j0MKq8YFDr5z3ZCSzj8Mz40O6Mff9cuYyVvkYtjAxFvlencFYjpUUSYjtZdxHawdB04t89/1O/w1cDnyilFU=')
+line_bot_api= LineBotApi(os.environ['CHANNEL_ACCESS_TOKEN'])
+
 # Global lock to synchronize file access
 file_lock = threading.Lock()
 
@@ -31,8 +31,8 @@ def linebot():
 
     try:
         # Inintialize Webhook Handler
-        #handler = WebhookHandler(os.environ['CHANNEL_SECRET'])
-        handler = WebhookHandler('784ec82b91bfda89bdcf3abe9d2a369f')
+        handler = WebhookHandler(os.environ['CHANNEL_SECRET'])
+
         # Get signature from request headers
         signature = request.headers['X-Line-Signature']
 
