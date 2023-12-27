@@ -177,14 +177,16 @@ def updateLastAImsgTime(user_id):
 def askChatPDF(user_message):
     """Call chatPDF API to ask questions."""
 
+    CHATPDF_API_KEY = os.environ['CHATPDF_API_KEY']
+    CHATPDF_FILE_SOURCE = os.environ['CHATPDF_FILE_SOURCE']
     # Send the user_message to chatPDF for processing
     headers = {
-        'x-api-key': 'sec_EIk82OYktur67w3RUJRjZTtcbKbaaZrV',
+        'x-api-key': f"{CHATPDF_API_KEY}",
         "Content-Type": "application/json",
     }
 
     data = {
-        'sourceId': "cha_f1jeDgt6Gmbdc9pFx6p9O",
+        'sourceId': f"{CHATPDF_FILE_SOURCE}",
         'messages': [
             {
                 'role': "user",
