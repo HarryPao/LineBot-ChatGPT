@@ -83,8 +83,9 @@ def linebot():
 
             # The user does not have enough quota to ask question
             else:
-                reply_msg = "We're sorry, but you've reached the message limit of the day. Please ask again tomorrow."
-
+                reply_msg = "很抱歉，由於您已達到每日詢問AI客服的次數上限:50次/日，AI客服將先行告退。您可以等待明日繼續詢問或是聯絡CRESTDiving客服專線，謝謝！"
+                exitAImode(user_id)
+                
         # If not a special command, echo the user's message
         # Use tradtional linebot mode
         else:
@@ -212,7 +213,7 @@ def check_idle_user(exit_event):
         # Check if there are any scheduled tasks that need to be executed
         schedule.run_pending()
         current_time = time.time()
-        print(current_time)
+
         users = db_handler.select_data('users', columns=['username', 'userid', 'aimode', 'lastaimsgtime'])
         
         for user in users:
