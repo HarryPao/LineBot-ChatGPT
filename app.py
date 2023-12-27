@@ -293,5 +293,6 @@ def main():
         db_handler.close_connection()
 
 if __name__ == "__main__":
-
+    print('HELLOWORLD')
     main()
+    
