@@ -297,10 +297,11 @@ def main():
         # Close the database connection
         db_handler.close_connection()
 
-main()
-
 if __name__ == "__main__":
 
     # Run the Flask app
     app.run(debug=True)
+    main()
+    
+else:
     main()
