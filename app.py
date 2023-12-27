@@ -35,7 +35,7 @@ db_handler = PostgreSQLHandler(DATABASE_URL)
 @app.route("/", methods=['POST'])
 def linebot():
     """This function would be ran upon there is POST request from webhook."""
-    print("HELLOWORLD")
+
     # Get the request body as text
     body = request.get_data(as_text=True)
 
@@ -100,7 +100,7 @@ def checkUserMsgQuota(user_id, user_name):
     If the user has enough quota, return true to enable asking chatPDF question.
     If the user has no quota, return false to reject the user from asking.
     If the user is a new user to this LineBot, add his/her  userId to the userInfo.json, and return ture to enable asking question."""
-
+    print("checkUserMsgOuota() has been called")
     selected_data = db_handler.select_data('users', condition=f"userid = '{user_id}'")
 
     if selected_data != []:
@@ -124,7 +124,7 @@ def checkUserMsgQuota(user_id, user_name):
 
 def modifyUserName(user_id, user_name):
     """Modify user's profile name (displayed name) in DB"""
-
+    print("modifyUserName() has been called")
     update_condition = f"userid = '{user_id}'"
     update_data = {'username': user_name}
     db_handler.update_data('users', update_data, update_condition)
@@ -132,12 +132,13 @@ def modifyUserName(user_id, user_name):
 def addUser(user_id, user_name):
     """Add the new user to DB, and set the quota to 49,
     because the user would use 1 quota upon asking question."""
-
+    print("addUser() has been called")
     data_to_insert = {'userid': user_id, 'username': user_name, 'quota': 49}
     db_handler.insert_data('users', data_to_insert)
 
 def userMsgQuotaDecreaseOne(select_data):
     """Decrease user's message quota by 1"""
+    print("userMsgQuotaDecreaseOne() has been called")
     userId = select_data[0][2]
     userQuota = select_data[0][3]
     userQuota -= 1
@@ -148,28 +149,28 @@ def userMsgQuotaDecreaseOne(select_data):
 
 def checkUserModeStatus(user_id):
     """See if the user is in AI-mode"""
-
+    print("checkUserModeStatus() has been called")
     selected_data = db_handler.select_data('users', condition=f"userid = '{user_id}'")
     userAImode = selected_data[0][4]
     return userAImode
 
 def enterAImode(user_id):
     """Turn the user's AImode status into active(true)."""
-
+    print("enterAImode() has been called")
     update_condition = f"userid = '{user_id}'"
     update_data = {'aimode': True}
     db_handler.update_data('users', update_data, update_condition)
 
 def updateLastAImsgTime(user_id):
     """Update the user's lastAImsgTime to the current time."""
-
+    print("updateLastAImsgTime() has been called")
     update_condition = f"userid = '{user_id}'"
     update_data = {'lastaimsgtime': time.time()}
     db_handler.update_data('users', update_data, update_condition)
 
 def askChatPDF(user_message):
     """Call chatPDF API to ask questions."""
-
+    print("askChatPDF() has been called")
     # Send the user_message to chatPDF for processing
     headers = {
         'x-api-key': 'sec_EIk82OYktur67w3RUJRjZTtcbKbaaZrV',
@@ -200,7 +201,7 @@ def check_idle_user(exit_event):
     """Periodically check idle users and sends notifications if their idle time exceeds 5 mins"""
     # Don't know why this while loop was executed twice every 5 sec,
     # so just put a counter to ensure it only execute once every 5 sec.
-
+    print("check_idle_user() has been called")
     # Periodically check idle users and send notifications
     while not exit_event.is_set():
 
@@ -227,7 +228,7 @@ def check_idle_user(exit_event):
 
 def exitAImodeNotification(user_id):
     """Notify specific user to let him/her know the AI customer service is signing off."""
-
+    print("exitAImodeNotification() has been called")
     # Create a TextSendMessage object with the message content
     notificationMsg = TextSendMessage(text = "Dear customer, hello! As you have been idle for more than 5 minutes, the AI customer service is now signing off. If you still need the services of our AI customer service, please use 'hi ai' to wake me up. Looking forward to continuing to serve you!")
     
@@ -236,21 +237,21 @@ def exitAImodeNotification(user_id):
 
 def exitAImode(user_id):
     """Turn user's AImode status into passive(false)."""
-
+    print("exitAImode() has been called")
     update_condition = f"userid = '{user_id}'"
     update_data = {'aimode': False}
     db_handler.update_data('users', update_data, update_condition)
 
 def reset_status():
     """Load the userInfo.json, reset the "quota" to 50 of every user, and save it back."""
-
+    print("reset_status() has been called")
     update_condition = "True"
     update_data = {"quota": 50}
     db_handler.update_data('users', update_data, update_condition)
 
 def scheduled_reset(exit_event):
     """Reset users' quota to 50 upon everyday midnight """
-
+    print("scheduled_reset() has been called")
     while not exit_event.is_set():
         # Check if there are any scheduled tasks that need to be executed
         schedule.run_pending()
@@ -264,7 +265,7 @@ def main():
     """Ran as a background task and continuously check the time
      to check if resetting users' quota of message is needed.
      Also continuously checking users' idle time and deactivate AImode when meeded"""
-    
+    print("main() has been called")
     lock = threading.Lock()
 
     # Create an Event to  signal the thread to exit.(Upon Ctrl+c is pressed)
