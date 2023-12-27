@@ -35,7 +35,7 @@ db_handler = PostgreSQLHandler(DATABASE_URL)
 @app.route("/", methods=['POST'])
 def linebot():
     """This function would be ran upon there is POST request from webhook."""
-
+    print("HELLOWORLD")
     # Get the request body as text
     body = request.get_data(as_text=True)
 
@@ -293,6 +293,6 @@ def main():
         db_handler.close_connection()
 
 if __name__ == "__main__":
-    print('HELLOWORLD')
+
     main()
     
