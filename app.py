@@ -29,7 +29,7 @@ line_bot_api= LineBotApi(os.environ['CHANNEL_ACCESS_TOKEN'])
 #     host='YOUR_DB_HOST',
 #     port='YOUR_DB_SERVER_PORT' # Default PostgreSQL port
 # )
-DATABASE_URL = os.environ['DATABSE_URL']
+DATABASE_URL = os.environ['DATABASE_URL']
 db_handler = PostgreSQLHandler(DATABASE_URL)
 
 @app.route("/", methods=['POST'])
